@@ -51,6 +51,17 @@ El workflow `.github/workflows/github-pages.yml` define `STATIC_EXPORT=1` y `BAS
 
 Para probar el estático en la PC antes de subir: ejecutá el comando de build de arriba y serví la carpeta `out/` con un servidor estático (o abrí comprobando que la URL coincida con el `BASE_PATH`).
 
+### Si el deploy falla (X roja en Actions / Deployments)
+
+En los logs suele aparecer **`Failed to create deployment (status: 404)`** o *Ensure GitHub Pages has been enabled*. Eso casi siempre significa que **Pages no está publicando vía GitHub Actions**:
+
+1. Abrí **Settings → Pages** del repo.
+2. En **Build and deployment**, el **Source** tiene que ser explícitamente **GitHub Actions**, no “Deploy from a branch”.
+3. Si antes elegiste una rama (`gh-pages` / `main` / `/root`), cambiá a **GitHub Actions** y guardá.
+4. Volvé a **Actions**, abrí el último run fallido y usá **Re-run all jobs** (o hacé un push vacío a `main`).
+
+El job **build** suele estar en verde; el que falla es **deploy** hasta que el origen de Pages sea Actions. La primera vez GitHub puede pedir **aprobar el entorno `github-pages`** en la pestaña Actions (banner amarillo): revisá y aprobá si aparece.
+
 ## Dónde tunear
 
 - Tasas y pesos de la cartera escalera: `src/lib/config/ladderPortfolio.ts`
