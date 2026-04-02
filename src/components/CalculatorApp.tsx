@@ -6,7 +6,6 @@ import { buildCommercialConclusion } from "@/lib/commercialConclusion";
 import { formatARS, formatPct } from "@/lib/format";
 import type { CalculatorInputs } from "@/lib/types/calculator";
 import { validateInputs } from "@/lib/validation";
-import { LADDER_INSTRUMENTS } from "@/lib/config/ladderPortfolio";
 import { Tooltip } from "./Tooltip";
 import { SectionCard } from "./SectionCard";
 
@@ -61,6 +60,7 @@ function Row({
 export function CalculatorApp() {
   const [form, setForm] = useState(DEFAULT_FORM);
   const [submitted, setSubmitted] = useState(false);
+  const [ladderDetailOpen, setLadderDetailOpen] = useState(false);
 
   const inputs: CalculatorInputs | null = useMemo(() => {
     const montoCheque = parseNum(form.montoCheque);
@@ -124,17 +124,10 @@ export function CalculatorApp() {
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
           Comparador de canje de cheques
         </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-slate-600 lg:mx-0">
-          Visualizá en segundos el costo del descuento, el efecto de reinvertir el neto en una cartera
-          escalera y cómo la inflación erosiona el poder de compra de esperar al cobro.
-        </p>
       </header>
 
       <form onSubmit={handleCalc} className="space-y-8">
-        <SectionCard
-          title="Datos para la reunión"
-          hint="Valores de ejemplo precargados; ajustalos con el cliente frente a frente."
-        >
+        <SectionCard title="Información">
           <div className="grid gap-8 lg:grid-cols-2">
             <div>
               <h3 className="mb-3 text-sm font-semibold text-slate-800">Info del cheque</h3>
@@ -220,11 +213,6 @@ export function CalculatorApp() {
             </div>
           </div>
 
-          <p className="mt-4 text-xs text-slate-500">
-            Cartera escalera (20% c/u): {LADDER_INSTRUMENTS.map((i) => i.label).join(" · ")}. Tasas en{" "}
-            <code className="rounded bg-slate-100 px-1">src/lib/config/ladderPortfolio.ts</code>.
-          </p>
-
           {showErrors ? (
             <ul className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
               {issues.map((i) => (
@@ -307,37 +295,44 @@ export function CalculatorApp() {
           <SectionCard
             step={3}
             title="Qué pasa si invertís el neto"
-            hint="Cada tramo es 1/5 del neto, con la lógica de cauciones y letras definida en el modelo."
+            hint="Neto dividido en 5 partes iguales e invertidas en escalera."
           >
-            <div className="space-y-3">
-              {result.tramos.map((t) => (
-                <div
-                  key={t.id}
-                  className="rounded-lg border border-slate-100 bg-slate-50/50 p-4"
-                >
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="font-medium text-slate-800">{t.label}</span>
-                    <span className="text-xs text-slate-500">20% del neto</span>
-                  </div>
-                  <div className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
-                    <div>
-                      <span className="text-slate-500">Asignado</span>
-                      <div className="font-mono tabular-nums text-slate-900">{formatARS(t.montoAsignado)}</div>
+            {ladderDetailOpen ? (
+              <div className="mb-4 space-y-3">
+                {result.tramos.map((t) => (
+                  <div
+                    key={t.id}
+                    className="rounded-lg border border-slate-100 bg-slate-50/50 p-4"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="font-medium text-slate-800">{t.label}</span>
+                      <span className="text-xs text-slate-500">20% del neto</span>
                     </div>
-                    <div>
-                      <span className="text-slate-500">Valor final estimado al vencimiento</span>
-                      <div className="font-mono tabular-nums text-slate-900">{formatARS(t.valorFuturo)}</div>
+                    <div className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
+                      <div>
+                        <span className="text-slate-500">Asignado</span>
+                        <div className="font-mono tabular-nums text-slate-900">{formatARS(t.montoAsignado)}</div>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Valor final estimado al vencimiento</span>
+                        <div className="font-mono tabular-nums text-slate-900">{formatARS(t.valorFuturo)}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 rounded-lg border border-slate-900/10 bg-slate-900 text-white px-4 py-3">
-              <div className="text-sm font-medium text-slate-300">Total cartera escalera (nominal al plazo)</div>
-              <div className="mt-1 text-2xl font-semibold font-mono tabular-nums tracking-tight">
-                {formatARS(result.totalCarteraEscalera)}
+                ))}
               </div>
-            </div>
+            ) : null}
+            <ResultHighlight
+              label="Total cartera escalera (nominal al plazo)"
+              value={formatARS(result.totalCarteraEscalera)}
+            />
+            <button
+              type="button"
+              onClick={() => setLadderDetailOpen((o) => !o)}
+              className="mt-3 text-sm font-medium text-slate-700 underline decoration-slate-300 underline-offset-2 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 rounded"
+            >
+              {ladderDetailOpen ? "Ocultar detalle por instrumento" : "Ver detalle por instrumento"}
+            </button>
           </SectionCard>
 
           <SectionCard
@@ -354,22 +349,11 @@ export function CalculatorApp() {
               label="Valor nominal si esperás al cobro"
               value={formatARS(result.valorEsperarNominal)}
             />
-            <Row
+            <ResultHighlight
+              className="mt-4"
               label="Valor real hoy de esperar el cheque"
               value={formatARS(result.valorRealEsperar)}
               tooltip="Nominal al vencimiento descontado por inflación acumulada estimada."
-              emphasize
-            />
-            <Row
-              label="Valor real hoy del neto si canjeás hoy"
-              value={formatARS(result.valorRealNetoCanje)}
-              tooltip="Liquidez inmediata en pesos de hoy (sin proyectar reinversión)."
-            />
-            <Row
-              label="Valor real hoy de la cartera escalera"
-              value={formatARS(result.valorRealCartera)}
-              tooltip="Total nominal de la cartera al vencimiento, deflactado con la misma inflación."
-              emphasize
             />
           </SectionCard>
 
@@ -430,6 +414,35 @@ export function CalculatorApp() {
           </SectionCard>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function ResultHighlight({
+  label,
+  value,
+  tooltip,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  tooltip?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`rounded-lg border border-slate-900/10 bg-slate-900 px-4 py-3 text-white ${className}`.trim()}
+    >
+      <div className="text-sm font-medium text-slate-300">
+        {tooltip ? (
+          <Tooltip label={tooltip}>
+            <span>{label}</span>
+          </Tooltip>
+        ) : (
+          label
+        )}
+      </div>
+      <div className="mt-1 text-2xl font-semibold font-mono tabular-nums tracking-tight">{value}</div>
     </div>
   );
 }
