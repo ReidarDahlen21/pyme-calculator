@@ -294,6 +294,28 @@ export function CalculatorApp() {
 
           <SectionCard
             step={3}
+            title="Impacto de la inflación"
+            hint="Comparamos poder de compra estimado en pesos de hoy al vencimiento."
+          >
+            <Row
+              label="Inflación acumulada al plazo (estimada)"
+              value={formatPct(result.inflacionAcumuladaPct)}
+              tooltip="Factor (1 + inflación mensual)^(días/30), expresado como % acumulado."
+            />
+            <Row
+              label="Valor nominal si esperás al cobro"
+              value={formatARS(result.valorEsperarNominal)}
+            />
+            <ResultHighlight
+              className="mt-4"
+              label="Valor real hoy de esperar el cheque"
+              value={formatARS(result.valorRealEsperar)}
+              tooltip="Nominal al vencimiento descontado por inflación acumulada estimada."
+            />
+          </SectionCard>
+
+          <SectionCard
+            step={4}
             title="Qué pasa si invertís el neto"
             hint="Neto dividido en 5 partes iguales e invertidas en escalera."
           >
@@ -333,28 +355,6 @@ export function CalculatorApp() {
             >
               {ladderDetailOpen ? "Ocultar detalle por instrumento" : "Ver detalle por instrumento"}
             </button>
-          </SectionCard>
-
-          <SectionCard
-            step={4}
-            title="Impacto de la inflación"
-            hint="Comparamos poder de compra estimado en pesos de hoy al vencimiento."
-          >
-            <Row
-              label="Inflación acumulada al plazo (estimada)"
-              value={formatPct(result.inflacionAcumuladaPct)}
-              tooltip="Factor (1 + inflación mensual)^(días/30), expresado como % acumulado."
-            />
-            <Row
-              label="Valor nominal si esperás al cobro"
-              value={formatARS(result.valorEsperarNominal)}
-            />
-            <ResultHighlight
-              className="mt-4"
-              label="Valor real hoy de esperar el cheque"
-              value={formatARS(result.valorRealEsperar)}
-              tooltip="Nominal al vencimiento descontado por inflación acumulada estimada."
-            />
           </SectionCard>
 
           <SectionCard
