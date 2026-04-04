@@ -284,11 +284,11 @@ export function CalculatorApp() {
               value={formatARS(result.costoBroker)}
               tooltip="Cheque × comisión %."
             />
-            <Row
+            <ResultHighlight
+              className="mt-4"
               label="Neto que recibís hoy"
               value={formatARS(result.netoCanje)}
               tooltip="Cheque menos interés, SGR y broker."
-              emphasize
             />
           </SectionCard>
 
